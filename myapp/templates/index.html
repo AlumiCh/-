@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>软件管理</title>
+</head>
+<body>
+    <h1>批量安装软件</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <p>{{ form.ip_list.label }}<br>{{ form.ip_list(size=40) }}</p>
+        <p>{{ form.software_name.label }}<br>{{ form.software_name(size=40) }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+</body>
+</html>
