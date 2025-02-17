@@ -1,15 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>软件管理</title>
+    <title>首页</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>批量安装软件</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <p>{{ form.ip_list.label }}<br>{{ form.ip_list(size=40) }}</p>
-        <p>{{ form.software_name.label }}<br>{{ form.software_name(size=40) }}</p>
-        <p>{{ form.submit() }}</p>
-    </form>
+<body class="container mt-4">
+    <h1>可部署的EXE应用</h1>
+    
+    <!-- 上传按钮 -->
+    <button class="btn btn-primary mb-3" onclick="showUploadModal()">上传EXE文件</button>
+    
+    <!-- EXE文件表格 -->
+    <table class="table" id="exeTable">
+        <thead>
+            <tr>
+                <th>选择</th>
+                <th>文件名</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 动态加载EXE文件 -->
+        </tbody>
+    </table>
+
+    <!-- 部署操作模态框 -->
+    <div class="modal fade" id="deployModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">部署配置</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="step1">
+                        <p>已选择：<span id="selectedExe"></span></p>
+                        <button class="btn btn-secondary" onclick="showStep2()">下一步</button>
+                    </div>
+                    <div id="step2" style="display:none;">
+                        <label>目标机器IP（多个用逗号分隔）</label>
+                        <input type="text" class="form-control" id="ipList">
+                        <button class="btn btn-primary mt-3" onclick="startDeploy()">开始部署</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传文件模态框 -->
+    <div class="modal fade" id="uploadModal">
+        <!-- 内容同原有上传表单 -->
+    </div>
+
+    <!-- 引入JavaScript -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 页面加载时获取EXE列表
+        $(document).ready(function() {
+            loadExeList();
+        });
+
+        // 加载EXE文件列表
+        function loadExeList() {
+            $.get('/get_exe_list', function(files) {
+                let tbody = $('#exeTable tbody');
+                tbody.empty();
+                files.forEach(file => {
+                    tbody.append(`
+                        <tr>
+                            <td><input type="checkbox" class="exeCheckbox" value="${file}"></td>
+                            <td>${file}</td>
+                        </tr>
+                    `);
+                });
+            });
+        }
+
+        // 显示上传模态框
+        function showUploadModal() {
+            $('#uploadModal').modal('show');
+        }
+
+        // 显示部署第二步
+        function showStep2() {
+            $('#step1').hide();
+            $('#step2').show();
+        }
+
+        // 开始部署
+        function startDeploy() {
+            const ips = $('#ipList').val().split(',');
+            const selectedFiles = [];
+            $('.exeCheckbox:checked').each(function() {
+                selectedFiles.push($(this).val());
+            });
+
+            // 发送部署请求到后端
+            $.post('/deploy', {
+                files: selectedFiles,
+                ips: ips
+            }, function(response) {
+                alert('任务已下发！');
+                $('#deployModal').modal('hide');
+            });
+        }
+    </script>
 </body>
 </html>
